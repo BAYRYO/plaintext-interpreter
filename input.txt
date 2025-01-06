@@ -1,0 +1,15 @@
+<h1>Mon Titre Principal</h1>
+<h2>Partie 1</h2>
+<p>Premier paragraphe.</p>
+<ul>{Item 1, <code>Item 2</code>, Item 3}</ul>
+<p>Texte entre la liste et le paragraphe suivant.</p>
+<p>Deuxième paragraphe.</p>
+<ol>{1, <code>2</code>, 3}</ol>
+<p>Encore du texte après la liste.</p>
+<code>def fonction(x):
+    return x * 2</code>
+<p>exemple de texte</p>
+<p><code>exemple</code> de texte</p>
+<p>exemple de texte</p>
+<h2>Partie 2 : <code>python</code></h2>
+<h3>Partie 2.1 : <code>pip</code></h3>

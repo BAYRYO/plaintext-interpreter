@@ -1,0 +1,69 @@
+# Configuration générale
+general:
+  encoding: utf-8
+  debug_mode: false
+
+# Configuration des templates
+templates:
+  paths:
+    assets:
+      css: templates/assets/css
+      js: templates/assets/js
+      images: templates/assets/images
+    header: templates/header.html
+    footer: templates/footer.html
+    nav_button: templates/components/nav_button.html
+
+# Configuration du style
+styling:
+  navigation:
+    indent_size: 20  # Taille de l'indentation pour les niveaux de navigation
+    base_padding: 10 # Padding de base pour les éléments de navigation
+
+# Configuration des regex
+patterns:
+  title: '(<(h[1-6]|p|ul|ol|code|table)[^>]*>.*?</\2>)'
+  code: '(<code>)(.*?)(</code>)'
+  lists: '\{(.*?)\}'
+  table: '<table>(.*?)</table>'
+  table_row: '$$\[(.*?)$$\]'
+  table_cell: '\|'
+
+# Configuration des IDs
+ids:
+  title_prefix: 'section'
+  nav_panel_id: 'panneau-arborescence'
+
+# Configuration des messages
+messages:
+  errors:
+    file_not_found: "Fichier '{file_path}' non trouvé."
+  success: "Conversion réussie. Fichier généré : {output_file}"
+
+# Configuration du HTML
+html:
+  allowed_tags:
+    - h1
+    - h2
+    - h3
+    - h4
+    - h5
+    - h6
+    - p
+    - ul
+    - ol
+    - code
+    - table
+    - thead
+    - tbody
+    - tr
+    - th
+    - td
+
+favicons:
+  required_files:
+    - 'favicon-96x96.png'
+    - 'favicon.svg'
+    - 'favicon.ico'
+    - 'apple-touch-icon.png'
+    - 'site.webmanifest'

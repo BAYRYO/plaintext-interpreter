@@ -1,0 +1,15 @@
+{% macro format_title(title, level) %}
+<h{{ level }} id="{{ title.id }}">{{ title.text }}</h{{ level }}>
+{% endmacro %}
+
+{% macro format_code(content) %}
+<code>{{ content }}</code>
+{% endmacro %}
+
+{% macro format_list(items, type='ul') %}
+<{{ type }}>
+    {% for item in items %}
+    <li>{{ item }}</li>
+    {% endfor %}
+</{{ type }}>
+{% endmacro %}

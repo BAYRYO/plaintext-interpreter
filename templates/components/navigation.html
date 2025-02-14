@@ -1,0 +1,10 @@
+<div id="{{ config.ids.nav_panel_id }}" style="display: none;">
+    {{ nav_button|safe }}
+    <ul class="navigation-list">
+        {% for title in titles %}
+        <li style="padding-left: {{ (title.level - 1) * config.styling.navigation.indent_size + config.styling.navigation.base_padding }}px;">
+            <a href="#{{ title.id }}">{{ title.text }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

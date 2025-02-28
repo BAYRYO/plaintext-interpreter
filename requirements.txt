@@ -1,0 +1,5 @@
+aiofiles>=0.8.0
+beautifulsoup4>=4.9.3
+Jinja2>=3.0.1
+PyYAML>=5.4.1
+python-json-logger>=2.0.7

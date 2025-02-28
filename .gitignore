@@ -1,2 +1,4 @@
 output/*
 src/__pycache__/
+logs/*
+src/utils/__pycache__/

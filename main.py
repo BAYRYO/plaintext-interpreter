@@ -1,18 +1,9 @@
+import asyncio
 import argparse
-import logging
 import sys
 from pathlib import Path
 from src.html_converter import HTMLConverter
-
-def setup_logging():
-    """Configure le logging global."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
+from src.utils.logging_utils import setup_logging, get_logger
 
 def parse_arguments():
     """Parse les arguments de la ligne de commande."""
@@ -33,9 +24,9 @@ def parse_arguments():
         help="Chemin vers le fichier de configuration (défaut: configs/config.yml)"
     )
     parser.add_argument(
-        "--prepare-assets",
-        action="store_true",
-        help="Prépare les assets dans le dossier de sortie"
+        "--log-config",
+        default="configs/logging_config.yml",
+        help="Chemin vers le fichier de configuration de logging"
     )
     parser.add_argument(
         "--debug",
@@ -45,42 +36,36 @@ def parse_arguments():
     
     return parser.parse_args()
 
-def main():
-    """Point d'entrée principal de l'application."""
-    # Configuration du logging
-    setup_logging()
-    logger = logging.getLogger(__name__)
-    
-    # Parse les arguments
+async def main_async():
+    """Async entry point"""
     args = parse_arguments()
     
+    # Setup logging
+    setup_logging(default_path=args.log_config)
+    logger = get_logger(__name__)
+    
+    if args.debug:
+        logger.setLevel('DEBUG')
+    
+    logger.info("Starting HTML converter")
+    
     try:
-        # Ajuste le niveau de logging si mode debug
-        if args.debug:
-            logging.getLogger().setLevel(logging.DEBUG)
-        
-        # Crée le convertisseur
         converter = HTMLConverter(config_path=args.config)
-        
-        # Prépare les chemins
         output_path = Path(args.output_file)
+        
+        logger.debug(f"Creating output directory: {output_path.parent}")
         output_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Prépare les assets si demandé
-        if args.prepare_assets:
-            logger.info("Préparation des assets...")
-            converter.prepare_assets(output_path.parent)
+        logger.info(f"Converting {args.input_file} to {args.output_file}")
+        await converter.convert_async(args.input_file, str(output_path))
         
-        # Effectue la conversion
-        logger.info(f"Début de la conversion de {args.input_file}")
-        converter.convert(args.input_file, str(output_path))
-        logger.info("Conversion terminée avec succès")
+        logger.info("Conversion completed successfully")
         
     except Exception as e:
-        logger.error(f"Erreur lors de la conversion: {str(e)}")
-        if args.debug:
-            logger.exception("Détails de l'erreur:")
+        logger.error(f"Conversion failed: {str(e)}", exc_info=True)
         sys.exit(1)
 
 if __name__ == "__main__":
-    main()
+    if sys.platform == 'win32':
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    asyncio.run(main_async())

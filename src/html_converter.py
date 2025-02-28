@@ -8,10 +8,16 @@ import json
 import shutil
 import re
 from bs4 import BeautifulSoup
+from .interfaces import IContentProcessor, ITemplateEngine
 from .processors import CodeProcessor, ListProcessor, TableProcessor
 from .validators import ValidatorFactory
 import os
-import time 
+import time
+import aiofiles
+import asyncio
+from functools import lru_cache
+from hashlib import md5
+from .utils.logging_utils import get_logger, log_execution_time, log_async_execution_time
 
 @dataclass
 class Title:
@@ -22,18 +28,23 @@ class Title:
 class HTMLConverter:
     """Classe principale pour la conversion de texte en HTML."""
     
-    def __init__(self, config_path: str = 'config.yml'):
+    def __init__(self, 
+                 config_path: str = 'config.yml',
+                 processors: Optional[List[IContentProcessor]] = None,
+                 template_engine: Optional[ITemplateEngine] = None,
+                 logger: Optional[logging.Logger] = None):
+        self.logger = logger or get_logger('html_converter')
+        self.logger.info("Initializing HTMLConverter")
         self.config = self._load_config(config_path)
-        self.logger = self._setup_logger()
-        self.jinja_env = self._setup_jinja()
+        self.jinja_env = template_engine or self._setup_jinja()
         self.regex_pattern = self.config['patterns']['title']
         
-        # Initialisation des processeurs
-        self.processors = [
+        self.processors = processors or [
             CodeProcessor(),
             ListProcessor(),
             TableProcessor()
         ]
+        self.logger.debug(f"Initialized with {len(self.processors)} processors")
         
         self._validate_paths()
         self._validate_templates()
@@ -348,60 +359,101 @@ class HTMLConverter:
                 raise
 
 
+    @log_execution_time()
     def convert(self, input_file: str, output_file: str) -> None:
-        """Méthode principale pour convertir le fichier texte en HTML."""
+        """Synchronous conversion method"""
+        self.logger.info(f"Starting conversion: {input_file} -> {output_file}")
         try:
-            # Conversion des chemins en objets Path
             input_path = Path(input_file).resolve()
             output_path = Path(output_file).resolve()
             
-            # Création du dossier de sortie s'il n'existe pas
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-
-            relative_assets_path = Path('assets')
-            
-            # Calcul des chemins relatifs pour les assets
-            assets_paths = {
-                'css': str(relative_assets_path / 'css'),
-                'js': str(relative_assets_path / 'js'),
-                'images': str(relative_assets_path / 'images')
-            }
-            
-            # Lecture et traitement du contenu
+            self.logger.debug(f"Reading input file: {input_path}")
             content = self.read_file(str(input_path))
+            
+            self.logger.debug("Processing content")
             processed_content, titles = self.process_titles(content)
             
-            # Préparation des données pour le template
-            template_data = {
-                'content': processed_content,
-                'titles': titles,
-                'config': self.config,
-                'navigation': self.generate_navigation_panel(titles),
-                'assets': assets_paths,
-                'favicon_status': self.verify_favicon_resources()
-            }
+            self.logger.debug("Preparing template data")
+            template_data = self._prepare_template_data(processed_content, titles, output_path)
             
-            # Génération du HTML
-            template = self.jinja_env.get_template('base.html')
-            output_html = template.render(**template_data)
+            self.logger.debug("Generating HTML")
+            output_html = self.jinja_env.get_template('base.html').render(**template_data)
             
-            # Écriture du fichier de sortie
-            output_path.write_text(
-                output_html, 
-                encoding=self.config['general']['encoding']
-            )
+            self.logger.debug(f"Writing output file: {output_path}")
+            output_path.write_text(output_html, encoding=self.config['general']['encoding'])
             
-            # Copie des assets
-            self.prepare_assets(output_path.parent)
-            
-            self.logger.info(
-                self.config['messages']['success'].format(output_file=str(output_path))
-            )
+            self.logger.info(f"Successfully converted {input_file} to {output_file}")
             
         except Exception as e:
-            self.logger.error(f"Erreur lors de la conversion : {str(e)}")
+            self.logger.error(f"Conversion failed: {str(e)}", exc_info=True)
             raise
-    
+
+    @log_async_execution_time()
+    async def convert_async(self, input_file: str, output_file: str) -> None:
+        """Asynchronous conversion method"""
+        self.logger.info(f"Starting async conversion: {input_file} -> {output_file}")
+        try:
+            input_path = Path(input_file).resolve()
+            output_path = Path(output_file).resolve()
+            
+            self.logger.debug(f"Reading input file: {input_path}")
+            content = await self._read_file_async(str(input_path))
+            
+            self.logger.debug("Processing content")
+            processed_content, titles = self.process_titles(content)
+            
+            self.logger.debug("Preparing template data")
+            template_data = await self._prepare_template_data(processed_content, titles, output_path)
+            
+            self.logger.debug("Generating HTML")
+            output_html = self.jinja_env.get_template('base.html').render(**template_data)
+            
+            self.logger.debug(f"Writing output file: {output_path}")
+            await self._write_file_async(output_path, output_html)
+            
+            self.logger.info(f"Successfully converted {input_file} to {output_file}")
+            
+        except Exception as e:
+            self.logger.error(f"Async conversion failed: {str(e)}", exc_info=True)
+            raise
+
+    async def _read_file_async(self, file_path: str) -> str:
+        """Async file reading"""
+        try:
+            async with aiofiles.open(file_path, mode='r', encoding=self.config['general']['encoding']) as f:
+                return await f.read()
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File not found: {file_path}")
+
+    async def _write_file_async(self, file_path: Path, content: str) -> None:
+        """Async file writing"""
+        async with aiofiles.open(file_path, mode='w', encoding=self.config['general']['encoding']) as f:
+            await f.write(content)
+
+    async def _prepare_template_data(self, content: str, titles: List[Title], output_path: Path) -> Dict:
+        """Prepare template data asynchronously"""
+        return {
+            'content': content,
+            'titles': titles,
+            'config': self.config,
+            'navigation': await asyncio.to_thread(self.generate_navigation_panel, titles),
+            'assets': await asyncio.to_thread(self._calculate_assets_paths, output_path),
+            'favicon_status': await asyncio.to_thread(self.verify_favicon_resources)
+        }
+
+    def _calculate_assets_paths(self, output_path: Path) -> Dict:
+        """Calculate assets paths"""
+        relative_assets_path = Path('assets')
+        return {
+            'css': str(relative_assets_path / 'css'),
+            'js': str(relative_assets_path / 'js'),
+            'images': str(relative_assets_path / 'images')
+        }
+
+    async def prepare_assets_async(self, output_dir: Path) -> None:
+        """Async version of prepare_assets"""
+        await asyncio.to_thread(self.prepare_assets, output_dir)
+
     def _get_relative_path(self, from_path: Path, to_path: Path) -> str:
         """Calcule le chemin relatif entre deux chemins."""
         try:

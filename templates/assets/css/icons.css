@@ -1,0 +1,49 @@
+/* Configuration de base pour Font Awesome */
+.fas, 
+.fa-solid {
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+}
+
+/* Import des icônes via CDN */
+@font-face {
+    font-family: 'Font Awesome 6 Free';
+    font-style: normal;
+    font-weight: 900;
+    font-display: block;
+    src: url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2") format("woff2");
+}
+
+/* Classes d'icônes spécifiques */
+.fa-bars::before {
+    content: "\f0c9";
+    font-family: 'Font Awesome 6 Free';
+}
+
+.fa-chevron-right::before {
+    content: "\f054";
+    font-family: 'Font Awesome 6 Free';
+}
+
+/* Style de base pour toutes les icônes */
+[class^="fa-"]::before,
+[class*=" fa-"]::before {
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Icônes pour le bouton de copie */
+.fa-copy::before {
+    content: "\f0c5";
+}
+
+.fa-check::before {
+    content: "\f00c";
+}
+
+.fa-times::before {
+    content: "\f00d";
+}

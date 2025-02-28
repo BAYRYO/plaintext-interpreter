@@ -6,8 +6,11 @@ general:
 # Configuration des templates
 templates:
   paths:
+    base: templates/
     assets:
-      css: templates/assets/css
+      css:
+        - templates/assets/css/style.css
+        - templates/assets/css/icons.css
       js: templates/assets/js
       images: templates/assets/images
     header: templates/header.html

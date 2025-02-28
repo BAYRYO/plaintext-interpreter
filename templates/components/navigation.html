@@ -1,10 +1,22 @@
-<div id="{{ config.ids.nav_panel_id }}" style="display: none;">
-    {{ nav_button|safe }}
-    <ul class="navigation-list">
-        {% for title in titles %}
-        <li style="padding-left: {{ (title.level - 1) * config.styling.navigation.indent_size + config.styling.navigation.base_padding }}px;">
-            <a href="#{{ title.id }}">{{ title.text }}</a>
-        </li>
-        {% endfor %}
-    </ul>
+<div class="navigation-container">
+    <button 
+        id="toggle-panneau" 
+        aria-label="Ouvrir/Fermer le menu de navigation"
+        aria-expanded="false"
+        aria-controls="panneau-arborescence">
+        <i class="fas fa-bars" aria-hidden="true"></i>
+        <span class="sr-only">Menu de navigation</span>
+    </button>
+
+    <nav id="panneau-arborescence" style="display: none;">
+        <ul class="navigation-list">
+            {% for title in titles %}
+            <a href="#{{ title.id }}">
+                <li data-level="{{ title.level }}">
+                    {{ title.text }}
+                </li>
+            </a>
+            {% endfor %}
+        </ul>
+    </nav>
 </div>

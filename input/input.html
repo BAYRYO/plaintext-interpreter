@@ -1,24 +1,55 @@
-<h1>Mon Titre Principal</h1>
-<h2>Partie 1</h2>
-<p>Premier paragraphe.</p>
-<ul>{Item 1, <code>Item 2</code>, Item 3}</ul>
-<p>Texte entre la liste et le paragraphe suivant.</p>
-<p>Deuxième paragraphe.</p>
-<ol>{1, <code>2</code>, 3}</ol>
-<p>Encore du texte après la liste.</p>
-<code>def fonction(x):
-    return x * 2</code>
-<p>exemple de texte</p>
-<p><code>exemple</code> de texte</p>
-<p>exemple de texte</p>
-<h2>Partie 2 : <code>python</code></h2>
-<h3>Partie 2.1 : <code>pip</code></h3>
+<h1>MarkWeave - Documentation</h1>
+<h2>Introduction</h2>
+<p>MarkWeave est un convertisseur de texte en HTML qui combine la simplicité du Markdown avec des fonctionnalités avancées de gestion des assets et de navigation dynamique.</p>
+<h2>Installation et Configuration</h2>
+<h3>Prérequis</h3>
+<ul>{Python 3.x, <code>pip</code> (gestionnaire de paquets Python), Connexion internet pour les CDN}</ul>
+<h3>Installation</h3>
+<code>pip install markweave</code>
+<h3>Configuration</h3>
+<p>Le fichier de configuration principal se trouve dans <code>configs/config.yml</code>. Il permet de personnaliser :</p>
+<ul>{Encodage des fichiers, Chemins des templates, Styles de navigation, Patterns regex, Messages système}</ul>
+<h2>Utilisation</h2>
+<h3>Commandes de Base</h3>
 <table>
 <thead>[[Commande|Description|Exemple]]</thead>
 <tbody>
-[[<code>pip install</code>|Installer un package|<code>pip install pandas</code>]]
-[[<code>pip list</code>|Lister les packages|<code>pip list</code>]]
-[[<code>pip freeze</code>|Exporter les dépendances|<code>pip freeze > requirements.txt</code>]]
+[[<code>python main.py input.html output.html</code>|Conversion simple d'un fichier|<code>python main.py docs/input.html build/output.html</code>]]
+[[<code>python main.py --live input.html output.html</code>|Mode édition en direct|<code>python main.py --live docs/guide.html build/guide.html</code>]]
+[[<code>python main.py --config custom_config.yml input.html output.html</code>|Utilisation d'une config personnalisée|<code>python main.py --config my_config.yml input.html output.html</code>]]
 </tbody>
 </table>
-    
+<h3>Syntaxe Supportée</h3>
+<p>MarkWeave prend en charge les éléments HTML suivants :</p>
+<ul>{Titres (h1-h6), Paragraphes, Listes ordonnées et non-ordonnées, Blocs de code, Tableaux}</ul>
+<h3>Fonctionnalités Spéciales</h3>
+<p>L'application offre plusieurs fonctionnalités avancées :</p>
+<ol>{Navigation dynamique automatique, Coloration syntaxique du code, Mode édition en direct, Gestion automatique des assets}</ol>
+<h2>Mode Édition en Direct</h2>
+<p>Le mode édition en direct (<code>--live</code>) permet de :</p>
+<ul>{Visualiser les changements en temps réel, Rafraîchissement automatique du navigateur, Prévisualisation instantanée du rendu}</ul>
+<h2>Gestion des Assets</h2>
+<h3>Structure des Assets</h3>
+<pre><code>templates/assets/
+    ├── css/
+    │   ├── style.css
+    │   └── icons.css
+    ├── js/
+    │   └── script.js
+    └── images/
+        ├── favicon.ico
+        └── favicon.svg
+</code></pre>
+<h3>Configuration des Assets</h3>
+<p>Les assets sont configurés dans <code>config.yml</code> et sont automatiquement gérés lors de la génération du HTML.</p>
+<h2>Personnalisation</h2>
+<h3>Templates</h3>
+<p>Les templates principaux sont :</p>
+<ul>{<code>base.html</code> - Template principal, <code>header.html</code> - En-tête de page, <code>footer.html</code> - Pied de page, <code>navigation.html</code> - Panneau de navigation}</ul>
+<h3>Styles</h3>
+<p>La personnalisation des styles peut se faire via :</p>
+<ul>{Modification des fichiers CSS existants, Configuration des paramètres dans <code>config.yml</code>, Ajout de nouveaux fichiers CSS}</ul>
+<h2>Dépannage</h2>
+<p>Les logs de l'application sont disponibles dans <code>logs/converter.log</code> et incluent des informations détaillées sur :</p>
+<ul>{Erreurs de conversion, Problèmes de configuration, Activité du mode édition en direct}</ul>
+   

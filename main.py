@@ -3,6 +3,7 @@ import argparse
 import sys
 from pathlib import Path
 from src.html_converter import HTMLConverter
+from src.live_editor import LiveEditor
 from src.utils.logging_utils import setup_logging, get_logger
 
 def parse_arguments():
@@ -33,6 +34,17 @@ def parse_arguments():
         action="store_true",
         help="Active le mode debug"
     )
+    parser.add_argument(
+        "--live",
+        action="store_true",
+        help="Active le mode live editing"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=5000,
+        help="Port pour le serveur live editing"
+    )
     
     return parser.parse_args()
 
@@ -47,25 +59,23 @@ async def main_async():
     if args.debug:
         logger.setLevel('DEBUG')
     
-    logger.info("Starting HTML converter")
-    
     try:
         converter = HTMLConverter(config_path=args.config)
         output_path = Path(args.output_file)
-        
-        logger.debug(f"Creating output directory: {output_path.parent}")
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
-        logger.info(f"Converting {args.input_file} to {args.output_file}")
-        await converter.convert_async(args.input_file, str(output_path))
-        
-        logger.info("Conversion completed successfully")
-        
+
+        if args.live:
+            logger.info("Starting live editing mode")
+            editor = LiveEditor(converter, args.input_file, args.output_file, args.port)
+            await editor.start()
+        else:
+            logger.info(f"Converting {args.input_file} to {args.output_file}")
+            await converter.convert_async(args.input_file, str(output_path))
+            logger.info("Conversion completed successfully")
+
     except Exception as e:
-        logger.error(f"Conversion failed: {str(e)}", exc_info=True)
-        sys.exit(1)
+        logger.error(f"Error: {str(e)}", exc_info=True)
+        raise
 
 if __name__ == "__main__":
-    if sys.platform == 'win32':
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main_async())

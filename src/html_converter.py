@@ -19,6 +19,10 @@ from functools import lru_cache
 from hashlib import md5
 from .utils.logging_utils import get_logger, log_execution_time, log_async_execution_time
 
+class ConfigurationError(Exception):
+    """Exception raised for configuration-related errors."""
+    pass
+
 @dataclass
 class Title:
     level: int
@@ -205,20 +209,61 @@ class HTMLConverter:
         except Exception:
             results['invalid'].append('site.webmanifest')
 
-    def _validate_paths(self) -> None:
-        """Vérifie que tous les chemins nécessaires existent."""
-        required_paths = [
-            self.config['templates']['paths']['header'],
-            self.config['templates']['paths']['footer'],
-            self.config['templates']['paths']['nav_button'],
-            Path(self.config['templates']['paths']['assets']['css']),
-            Path(self.config['templates']['paths']['assets']['js']),
-            Path(self.config['templates']['paths']['assets']['images'])
-        ]
-        
-        for path in required_paths:
-            if not Path(path).exists():
-                raise FileNotFoundError(f"Chemin requis non trouvé : {path}")
+    def _validate_paths(self):
+        """Validate all paths in configuration."""
+        try:
+            # Gestion des chemins CSS
+            css_config = self.config['templates']['paths']['assets']['css']
+            self.css_paths = []
+            
+            # Si css_config est une chaîne unique
+            if isinstance(css_config, str):
+                path = Path(css_config)
+                if not path.exists():
+                    self.logger.warning(f"CSS file not found: {path}")
+                self.css_paths.append(path)
+                
+            # Si css_config est une liste
+            elif isinstance(css_config, (list, tuple)):
+                for css_item in css_config:
+                    if not isinstance(css_item, str):
+                        raise TypeError(f"CSS path must be a string, got {type(css_item)}")
+                    path = Path(css_item)
+                    if not path.exists():
+                        self.logger.warning(f"CSS file not found: {path}")
+                    self.css_paths.append(path)
+                    
+            # Si css_config est un dictionnaire
+            elif isinstance(css_config, dict):
+                for css_path in css_config.values():
+                    if isinstance(css_path, str):
+                        path = Path(css_path)
+                        if not path.exists():
+                            self.logger.warning(f"CSS file not found: {path}")
+                        self.css_paths.append(path)
+                    elif isinstance(css_path, (list, tuple)):
+                        for item in css_path:
+                            if not isinstance(item, str):
+                                raise TypeError(f"CSS path must be a string, got {type(item)}")
+                            path = Path(item)
+                            if not path.exists():
+                                self.logger.warning(f"CSS file not found: {path}")
+                            self.css_paths.append(path)
+                    else:
+                        raise TypeError(f"CSS path must be a string or list, got {type(css_path)}")
+            else:
+                raise TypeError(f"CSS configuration must be a string, list, or dict, got {type(css_config)}")
+
+            # Validation du chemin du template de base
+            template_path = Path(self.config['templates']['paths']['base'])
+            if not template_path.exists():
+                raise FileNotFoundError(f"Template directory not found: {template_path}")
+            self.template_path = template_path
+
+        except KeyError as e:
+            raise ConfigurationError(f"Missing required configuration key: {str(e)}")
+        except TypeError as e:
+            raise ConfigurationError(f"Invalid path configuration: {str(e)}")
 
     def _validate_templates(self) -> None:
         """Vérifie que tous les templates nécessaires existent."""
@@ -256,52 +301,34 @@ class HTMLConverter:
                     self.logger.warning(f"Aucun fichier valide trouvé dans {type_dir}")
 
     def prepare_assets(self, output_dir: Path) -> None:
-        """
-        Prépare et copie les assets vers le dossier de destination.
-        
-        Args:
-            output_dir (Path): Chemin du dossier de sortie
-        
-        Raises:
-            OSError: En cas d'erreur lors de la copie des fichiers
-        """
+        """Prépare les assets pour le site généré."""
         assets_dir = output_dir / 'assets'
         
-        # Structure des assets à copier
-        asset_structure = {
-            'css': self.config['templates']['paths']['assets']['css'],
-            'js': self.config['templates']['paths']['assets']['js'],
-            'images': self.config['templates']['paths']['assets']['images']
-        }
+        # Création des dossiers nécessaires
+        for asset_type in ['css', 'js', 'images']:
+            (assets_dir / asset_type).mkdir(parents=True, exist_ok=True)
 
-        try:
-            # 1. Nettoyage du dossier assets existant si nécessaire
-            if assets_dir.exists():
-                self.logger.info(f"Nettoyage du dossier assets existant: {assets_dir}")
-                shutil.rmtree(assets_dir, ignore_errors=True)
+        # Copie des fichiers CSS
+        css_dir = assets_dir / 'css'
+        css_files = [
+            Path('templates/assets/css/style.css'),
+            Path('templates/assets/css/icons.css')
+        ]
+        
+        for css_file in css_files:
+            if css_file.exists():
+                shutil.copy2(css_file, css_dir / css_file.name)
+            else:
+                self.logger.warning(f"CSS file not found: {css_file}")
 
-            # 2. Création de la structure de base
-            for asset_type in asset_structure.keys():
-                (assets_dir / asset_type).mkdir(parents=True, exist_ok=True)
-
-            # 3. Copie des assets avec gestion des erreurs
-            for asset_type, source_path in asset_structure.items():
-                source_dir = Path(source_path)
-                if not source_dir.exists():
-                    self.logger.warning(f"Dossier source manquant: {source_dir}")
-                    continue
-
-                dest_dir = assets_dir / asset_type
-                self._copy_directory_contents(source_dir, dest_dir)
-
-            self.logger.info(f"Assets copiés avec succès vers {assets_dir}")
-            
-            # 4. Vérification post-copie
-            self._verify_assets_integrity(assets_dir)
-
-        except Exception as e:
-            self.logger.error(f"Erreur lors de la préparation des assets: {str(e)}")
-            raise
+        # Copie des autres assets
+        js_src = Path(self.config['templates']['paths']['assets']['js'])
+        images_src = Path(self.config['templates']['paths']['assets']['images'])
+        
+        if js_src.exists():
+            shutil.copytree(js_src, assets_dir / 'js', dirs_exist_ok=True)
+        if images_src.exists():
+            shutil.copytree(images_src, assets_dir / 'images', dirs_exist_ok=True)
 
     def _copy_directory_contents(self, source_dir: Path, dest_dir: Path) -> None:
         """
@@ -443,11 +470,15 @@ class HTMLConverter:
 
     def _calculate_assets_paths(self, output_path: Path) -> Dict:
         """Calculate assets paths"""
-        relative_assets_path = Path('assets')
+        # Calculer le chemin relatif depuis le fichier de sortie vers le dossier assets
+        assets_base = '../assets' if output_path.parent.name else 'assets'
         return {
-            'css': str(relative_assets_path / 'css'),
-            'js': str(relative_assets_path / 'js'),
-            'images': str(relative_assets_path / 'images')
+            'css': [
+                f"{assets_base}/css/style.css",
+                f"{assets_base}/css/icons.css"
+            ],
+            'js': f"{assets_base}/js",
+            'images': f"{assets_base}/images"
         }
 
     async def prepare_assets_async(self, output_dir: Path) -> None:

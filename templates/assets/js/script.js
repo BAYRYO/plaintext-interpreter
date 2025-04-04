@@ -7,6 +7,71 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// Gestion du mode sombre
+document.addEventListener("DOMContentLoaded", () => {
+    // Créer le bouton de bascule du thème
+    const themeToggle = document.createElement('button');
+    themeToggle.className = 'theme-toggle';
+    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    themeToggle.setAttribute('aria-label', 'Basculer entre le mode clair et sombre');
+    document.body.appendChild(themeToggle);
+
+    // Fonction pour définir le thème avec transition fluide
+    function setTheme(theme, instant = false) {
+        // Ajouter une classe de transition si ce n'est pas un changement instantané
+        if (!instant) {
+            document.documentElement.classList.add('theme-transition');
+
+            // Retirer la classe après la fin de la transition
+            setTimeout(() => {
+                document.documentElement.classList.remove('theme-transition');
+            }, 300); // Correspond à la durée de transition CSS (0.3s)
+        }
+
+        if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Vérifier la préférence enregistrée ou la préférence système
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    // Appliquer le thème initial sans transition (instant=true)
+    if (savedTheme) {
+        setTheme(savedTheme, true);
+    } else if (prefersDark) {
+        setTheme('dark', true);
+    }
+
+    // Basculer le thème au clic sur le bouton avec animation
+    themeToggle.addEventListener('click', () => {
+        // Ajouter une classe pour l'animation du bouton
+        themeToggle.classList.add('theme-toggle-active');
+
+        // Retirer la classe après l'animation
+        setTimeout(() => {
+            themeToggle.classList.remove('theme-toggle-active');
+        }, 300);
+
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
+    // Écouter les changements de préférence système
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.getItem('theme')) {
+            setTheme(e.matches ? 'dark' : 'light');
+        }
+    });
+});
+
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('code').forEach((block) => {
         try {
@@ -31,17 +96,17 @@ document.addEventListener("DOMContentLoaded", () => {
         copyButton.style.justifyContent = 'center';
         copyButton.style.alignItems = 'center';
         copyButton.innerHTML = '<i class="fas fa-copy"></i>';
-        
+
         copyButton.addEventListener('click', async () => {
             // Récupérer le texte du bloc code
             const code = pre.querySelector('code');
             const text = code.innerText;
-            
+
             try {
                 await navigator.clipboard.writeText(text);
                 copyButton.innerHTML = '<i class="fas fa-check"></i>';
                 copyButton.classList.add('copied');
-                
+
                 // Rétablir le bouton après 2 secondes
                 setTimeout(() => {
                     copyButton.innerHTML = '<i class="fas fa-copy"></i>';
@@ -50,13 +115,13 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (err) {
                 console.error('Erreur lors de la copie :', err);
                 copyButton.innerHTML = '<i class="fas fa-times"></i>';
-                
+
                 setTimeout(() => {
                     copyButton.innerHTML = '<i class="fas fa-copy"></i>';
                 }, 2000);
             }
         });
-        
+
         pre.appendChild(copyButton);
     });
 });
@@ -74,11 +139,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const panneauRect = panneau.getBoundingClientRect();
         const itemRect = activeItem.getBoundingClientRect();
-        
+
         // Calculer la position centrale souhaitée
-        const targetScrollTop = panneau.scrollTop + 
-            (itemRect.top - panneauRect.top) - 
-            (panneauRect.height / 2) + 
+        const targetScrollTop = panneau.scrollTop +
+            (itemRect.top - panneauRect.top) -
+            (panneauRect.height / 2) +
             (itemRect.height / 2);
 
         // Vérifier les limites de défilement
@@ -198,7 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
             e.preventDefault();
             const targetId = link.getAttribute('href').substring(1);
             const targetElement = document.getElementById(targetId);
-            
+
             if (targetElement) {
                 // Mettre à jour la navigation avant le défilement
                 navigationLinks.forEach(l => l.classList.remove('active'));

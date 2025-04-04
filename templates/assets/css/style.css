@@ -6,6 +6,7 @@
 }
 
 :root {
+    /* Mode clair (par défaut) */
     --primary-color: #3498db;
     --secondary-color: #2980b9;
     --text-color: #333;
@@ -13,6 +14,42 @@
     --code-background: #ecf0f1;
     --border-color: #e0e0e0;
     --shadow-color: rgba(0, 0, 0, 0.1);
+    --box-background: #fff;
+    --blockquote-background: #f9f9f9;
+    --input-background: #f9f9f9;
+    --table-header-background: #f2f2f2;
+    --table-row-even: #f8f8f8;
+    --table-row-hover: #f1f1f1;
+}
+
+/* Mode sombre */
+[data-theme="dark"] {
+    --primary-color: #61dafb;
+    --secondary-color: #4fa3d1;
+    --text-color: #e0e0e0;
+    --background-color: #1a1a1a;
+    --code-background: #2d2d2d;
+    --border-color: #444;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --box-background: #2d2d2d;
+    --blockquote-background: #2a2a2a;
+    --input-background: #333;
+    --table-header-background: #333;
+    --table-row-even: #2a2a2a;
+    --table-row-hover: #3a3a3a;
+}
+
+html {
+    /* Pas de transition par défaut pour éviter les transitions au chargement initial */
+}
+
+/* Classe appliquée uniquement pendant les transitions de thème */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *:before,
+html.theme-transition *:after {
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+    transition-delay: 0s !important;
 }
 
 body {
@@ -23,6 +60,7 @@ body {
     line-height: 1.6;
     margin: 0;
     font-size: 16px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 ::selection {
@@ -32,7 +70,7 @@ body {
 
 /* Thème Matte pour Highlight.js */
 .hljs {
-    background: #f7f7f7;
+    background: var(--code-background);
     color: var(--text-color);
     padding: 0.3rem;
     border-radius: 4px;
@@ -41,6 +79,36 @@ body {
     box-shadow: 0 4px 6px var(--shadow-color);
     border: 1px solid var(--border-color);
     overflow-x: auto;
+}
+
+[data-theme="dark"] .hljs-keyword,
+[data-theme="dark"] .hljs-selector-tag,
+[data-theme="dark"] .hljs-name,
+[data-theme="dark"] .hljs-attribute,
+[data-theme="dark"] .hljs-symbol,
+[data-theme="dark"] .hljs-literal,
+[data-theme="dark"] .hljs-builtin,
+[data-theme="dark"] .hljs-title,
+[data-theme="dark"] .hljs-section {
+    color: #88c0ff;
+}
+
+[data-theme="dark"] .hljs-string,
+[data-theme="dark"] .hljs-type,
+[data-theme="dark"] .hljs-built_in,
+[data-theme="dark"] .hljs-builtin-name,
+[data-theme="dark"] .hljs-selector-id,
+[data-theme="dark"] .hljs-selector-attr,
+[data-theme="dark"] .hljs-selector-pseudo,
+[data-theme="dark"] .hljs-addition {
+    color: #a5d6a7;
+}
+
+[data-theme="dark"] .hljs-comment,
+[data-theme="dark"] .hljs-quote,
+[data-theme="dark"] .hljs-deletion,
+[data-theme="dark"] .hljs-meta {
+    color: #b0bec5;
 }
 
 /* Couleurs pour différents types de syntaxe */
@@ -70,7 +138,7 @@ body {
 
 /* Titres */
 h1, h2, h3, h4, h5, h6 {
-    color: #2c3e50;
+    color: var(--text-color);
     font-family: 'Segoe UI', 'Roboto', sans-serif;
     font-weight: 600;
     margin-bottom: 1rem;
@@ -167,17 +235,18 @@ li {
 
 /* Panneau d'arborescence */
 #panneau-arborescence {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid #e9ecef;
+    background: var(--box-background);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 30px var(--shadow-color);
     padding: 20px;
     max-height: calc(100vh - 100px);
     overflow-y: auto;
     width: 300px;
     backdrop-filter: blur(10px);
     scrollbar-width: thin;
-    scrollbar-color: #cbd5e0 #f8fafc;
+    scrollbar-color: var(--border-color) var(--background-color);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 #panneau-arborescence::-webkit-scrollbar {
@@ -185,18 +254,18 @@ li {
 }
 
 #panneau-arborescence::-webkit-scrollbar-track {
-    background: #f8fafc;
+    background: var(--background-color);
     border-radius: 4px;
 }
 
 #panneau-arborescence::-webkit-scrollbar-thumb {
-    background-color: #cbd5e0;
+    background-color: var(--border-color);
     border-radius: 4px;
     transition: background-color 0.3s ease;
 }
 
 #panneau-arborescence::-webkit-scrollbar-thumb:hover {
-    background-color: #a0aec0;
+    background-color: var(--secondary-color);
 }
 
 /* Liste de navigation */
@@ -209,7 +278,7 @@ li {
 #panneau-arborescence .navigation-list a {
     display: block;
     text-decoration: none;
-    color: #2d3748;
+    color: var(--text-color);
     transition: all 0.3s ease;
     margin-bottom: 10px;
 }
@@ -297,10 +366,10 @@ li {
 
 /* États hover */
 #panneau-arborescence .navigation-list a:hover li {
-    background: linear-gradient(to right, #f8fafc, #f1f5f9);
-    border-color: #e2e8f0;
+    background: linear-gradient(to right, var(--background-color), var(--code-background));
+    border-color: var(--border-color);
     transform: translateX(8px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px var(--shadow-color);
 }
 
 #panneau-arborescence .navigation-list a:hover li::before {
@@ -311,8 +380,8 @@ li {
 
 /* État actif */
 #panneau-arborescence .navigation-list a.active li {
-    background-color: #EDF2F7;
-    border-color: #CBD5E0;
+    background-color: var(--code-background);
+    border-color: var(--border-color);
     color: var(--primary-color);
     font-weight: 600;
 }
@@ -361,7 +430,7 @@ pre {
 
 /* Box */
 .box {
-    background-color: #fff;
+    background-color: var(--box-background);
     padding: 20px;
     box-shadow: 0 4px 6px var(--shadow-color);
     border-radius: 8px;
@@ -374,7 +443,7 @@ blockquote {
     padding: 10px 20px;
     font-style: italic;
     margin: 20px 0;
-    background-color: #f9f9f9;
+    background-color: var(--blockquote-background);
     border-radius: 0 8px 8px 0;
 }
 
@@ -402,9 +471,10 @@ input, textarea {
     padding: 10px;
     font-size: 1rem;
     border-radius: 5px;
-    border: 1px solid #bdc3c7;
+    border: 1px solid var(--border-color);
     margin-bottom: 10px;
-    background-color: #f9f9f9;
+    background-color: var(--input-background);
+    color: var(--text-color);
     transition: all 0.3s ease;
 }
 
@@ -425,11 +495,12 @@ table.content-table {
     box-shadow: 0 4px 6px var(--shadow-color);
     border-radius: 8px;
     overflow: hidden;
+    color: var(--text-color);
 }
 
 table.content-table thead tr {
-    background-color: #1a5f7a;
-    color: #ffffff;
+    background-color: var(--table-header-background);
+    color: var(--text-color);
     text-align: left;
     font-weight: bold;
 }
@@ -445,7 +516,7 @@ table.content-table tbody tr {
 }
 
 table.content-table tbody tr:nth-of-type(even) {
-    background-color: #f3f3f3;
+    background-color: var(--table-row-even);
 }
 
 table.content-table tbody tr:last-of-type {
@@ -453,14 +524,14 @@ table.content-table tbody tr:last-of-type {
 }
 
 table.content-table tbody tr:hover {
-    background-color: #e6e6e6;
+    background-color: var(--table-row-hover);
     transform: scale(1.01);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px var(--shadow-color);
 }
 
 table.content-table td.row-header {
     font-weight: bold;
-    color: #1a5f7a;
+    color: var(--primary-color);
 }
 
 /* Classe utilitaire pour le lecteur d'écran */
@@ -474,6 +545,54 @@ table.content-table td.row-header {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+}
+
+/* Bouton de bascule du mode sombre */
+.theme-toggle {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: #fff;
+    padding: 12px;
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle:active {
+    transform: translateY(0);
+}
+
+/* Animation du bouton lors du changement de thème */
+.theme-toggle-active {
+    animation: theme-toggle-spin 0.5s ease;
+}
+
+@keyframes theme-toggle-spin {
+    0% {
+        transform: rotate(0) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
 }
 
 /* Media Queries pour la responsivité */
@@ -507,14 +626,15 @@ table.content-table td.row-header {
 pre code {
     font-family: 'Fira Code', 'Consolas', monospace;
     line-height: 1.5;
-    background-color: #f8f9fa;
+    background-color: var(--code-background);
     border-radius: 8px;
     padding: 20px;
-    color: #2d3748;
+    color: var(--text-color);
     display: block;
     overflow-x: auto;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Couleurs pour les différents éléments de l'arborescence */
@@ -575,8 +695,8 @@ pre {
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #e2e8f0;
+    background: var(--box-background);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 8px 12px;
     font-size: 0.85em;
@@ -584,8 +704,8 @@ pre {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #4a5568;
-    transition: all 0.2s ease;
+    color: var(--text-color);
+    transition: all 0.3s ease, opacity 0.2s ease;
     opacity: 0;
 }
 
@@ -594,10 +714,10 @@ pre:hover .copy-button {
 }
 
 .copy-button:hover {
-    background: #fff;
-    border-color: #cbd5e0;
+    background: var(--background-color);
+    border-color: var(--border-color);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .copy-button:active {

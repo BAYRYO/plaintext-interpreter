@@ -1,5 +1,5 @@
 /* Configuration de base pour Font Awesome */
-.fas, 
+.fas,
 .fa-solid {
     font-family: 'Font Awesome 6 Free';
     font-weight: 900;
@@ -46,4 +46,13 @@
 
 .fa-times::before {
     content: "\f00d";
+}
+
+/* Icônes pour le mode sombre */
+.fa-moon::before {
+    content: "\f186";
+}
+
+.fa-sun::before {
+    content: "\f185";
 }

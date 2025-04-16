@@ -1,9 +1,19 @@
 document.addEventListener("DOMContentLoaded", () => {
     const toggleButton = document.getElementById('toggle-panneau');
     const panneauArborescence = document.getElementById('panneau-arborescence');
+    const navigationContainer = document.querySelector('.navigation-container');
 
     toggleButton.addEventListener('click', () => {
-        panneauArborescence.style.display = panneauArborescence.style.display === 'none' ? 'block' : 'none';
+        const isHidden = panneauArborescence.style.display === 'none';
+        panneauArborescence.style.display = isHidden ? 'block' : 'none';
+        // Active/désactive l'arrière-plan du panneau de navigation
+        if (navigationContainer) {
+            if (isHidden) {
+                navigationContainer.classList.add('bg-enabled');
+            } else {
+                navigationContainer.classList.remove('bg-enabled');
+            }
+        }
     });
 });
 

@@ -41,7 +41,9 @@ class TableProcessor(IContentProcessor):
                 html_parts.append(self._process_row(line))
         
         html_parts.extend(['</tbody>', '</table>'])
-        return '\n'.join(html_parts)
+        table_html = '\n'.join(html_parts)
+        # Envelopper le tableau dans un div responsive
+        return f'<div class="table-responsive">\n{table_html}\n</div>'
 
     def _process_header(self, line: str) -> str:
         header_content = line.replace('<thead>', '').replace('</thead>', '')

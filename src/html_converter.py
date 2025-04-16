@@ -301,34 +301,25 @@ class HTMLConverter:
                     self.logger.warning(f"Aucun fichier valide trouvé dans {type_dir}")
 
     def prepare_assets(self, output_dir: Path) -> None:
-        """Prépare les assets pour le site généré."""
-        assets_dir = output_dir / 'assets'
-        
-        # Création des dossiers nécessaires
-        for asset_type in ['css', 'js', 'images']:
-            (assets_dir / asset_type).mkdir(parents=True, exist_ok=True)
+        """Prépare les assets pour le site généré en copiant récursivement tout le dossier templates/assets dans output_dir/assets."""
+        base_dir = Path(__file__).resolve().parent.parent
+        source_assets = base_dir / 'templates' / 'assets'
+        dest_assets = output_dir / 'assets'
 
-        # Copie des fichiers CSS
-        css_dir = assets_dir / 'css'
-        css_files = [
-            Path('templates/assets/css/style.css'),
-            Path('templates/assets/css/icons.css')
-        ]
-        
-        for css_file in css_files:
-            if css_file.exists():
-                shutil.copy2(css_file, css_dir / css_file.name)
-            else:
-                self.logger.warning(f"CSS file not found: {css_file}")
+        if not source_assets.exists():
+            self.logger.warning(f"Le dossier source des assets n'existe pas : {source_assets}")
+            return
 
-        # Copie des autres assets
-        js_src = Path(self.config['templates']['paths']['assets']['js'])
-        images_src = Path(self.config['templates']['paths']['assets']['images'])
-        
-        if js_src.exists():
-            shutil.copytree(js_src, assets_dir / 'js', dirs_exist_ok=True)
-        if images_src.exists():
-            shutil.copytree(images_src, assets_dir / 'images', dirs_exist_ok=True)
+        self.logger.info(f"Préparation des assets : source={source_assets} -> dest={dest_assets}")
+        try:
+            if dest_assets.exists():
+                self.logger.info(f"Suppression du dossier d'assets existant : {dest_assets}")
+                shutil.rmtree(dest_assets)
+            shutil.copytree(source_assets, dest_assets)
+            self.logger.info(f"Assets copiés avec succès dans {dest_assets}")
+        except Exception as e:
+            self.logger.error(f"Erreur lors de la copie des assets : {e}", exc_info=True)
+
 
     def _copy_directory_contents(self, source_dir: Path, dest_dir: Path) -> None:
         """
@@ -437,7 +428,10 @@ class HTMLConverter:
             
             self.logger.debug(f"Writing output file: {output_path}")
             await self._write_file_async(output_path, output_html)
-            
+
+            # Copie automatique des assets dans le dossier de sortie
+            self.prepare_assets(output_path.parent)
+
             self.logger.info(f"Successfully converted {input_file} to {output_file}")
             
         except Exception as e:
@@ -469,9 +463,8 @@ class HTMLConverter:
         }
 
     def _calculate_assets_paths(self, output_path: Path) -> Dict:
-        """Calculate assets paths"""
-        # Calculer le chemin relatif depuis le fichier de sortie vers le dossier assets
-        assets_base = '../assets' if output_path.parent.name else 'assets'
+        """Calculate assets paths relatifs à la racine du dossier de sortie (output)."""
+        assets_base = 'assets'
         return {
             'css': [
                 f"{assets_base}/css/style.css",

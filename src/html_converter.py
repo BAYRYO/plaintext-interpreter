@@ -485,10 +485,16 @@ class HTMLConverter:
         except ValueError:
             return str(to_path)
         
-    def _verify_assets_structure(self, output_dir: Path) -> None:
-        """Vérifie que la structure des assets est correcte."""
+    def _verify_assets_structure(self, output_dir: Path) -> List[str]:
+        """Vérifie que la structure des assets est correcte.
+
+        Returns:
+            List[str]: liste des fichiers manquants.
+        """
         required_dirs = ['css', 'js', 'images']
         assets_dir = output_dir / 'assets'
+
+        missing_files: List[str] = []
         
         for dir_name in required_dirs:
             dir_path = assets_dir / dir_name
@@ -509,3 +515,6 @@ class HTMLConverter:
                 file_path = dir_path / file_name
                 if not file_path.exists():
                     self.logger.warning(f"Fichier d'asset manquant : {file_path}")
+                    missing_files.append(str(file_path))
+
+        return missing_files
